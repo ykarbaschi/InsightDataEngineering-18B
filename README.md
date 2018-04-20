@@ -27,5 +27,6 @@ Complex Queries (can handle join on big tables like Redshift)
 
 Data storage on a distributed file system (HDFS)
 
-Proposed architecture
+# Proposed architecture
+
 ![Alt text](./arch.png)
