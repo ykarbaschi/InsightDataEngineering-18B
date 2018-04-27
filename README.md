@@ -1,32 +1,18 @@
 # InsightDataEngineering-18B
 
 # Project Idea
-Designing a pipeline for collaboratively build and maintain an image metadata dataset.
+Make Open Image Dataset V3 available in consumable size for data sciecntist to use as quilt packages. Main purpose of Quilt package is reproducibility of machine learning models.
 
-# What is the purpose, and most common use cases?
-The purpose is to provide a platform for researcher to query and retrieve image metadata to train a custom classifier.
-
-Consider how google translate works and ask participating for translating new words or verifying previous translation by other people. The goal is to provide the same thing for labeling images and bounding boxes inside of the images, but is open to public. Researchers can query images and download the metadata. Contributors can add images or change labels. Meaning of images can change or becomes meaningless over time! (Kids even don’t know what a floppy disk is)
-
-# Scale of the data
-The Open Image Dataset contains ~ 9 million records which will be used as a seed. This data can be used multiple times to load test the system.
-
-World Population ~ 7.6 Billion <br/>
-The number of smartphone ~ 5 Billion <br/>
-If 1% contribute 10 images with 3 labels  ~ 50 million * 10 * 3 (1.5 Billion labels)
+# Proposal
+* Download all images
+  * Verify downloaded files
+* Partition them into consumable and meaningful chunks (Maybe labels?)
+* Make Quilt Package for each chunk
+  * Consider each quilt package as a python library whcih can be imported.
+  * Each quilt contains metadata table. It can be filtered before importing.
 
 # Challenges
-Small number of tables (~5) but can grow tremendously
-* needs partitioning
-
-Should handle arbitrary queries
-
-Should handle different type of request with a queue (Kafka, RabbitMQ)
-* Common queries (in-memory database like Redis)
-* Complex Queries (can handle join on big tables like Redshift)
-
-Data will be stored on a distributed file system (HDFS)
-
-# Proposed architecture
-
-![Alt text](./arch.png)
+Downloading and Verifying Result
+* I've extracted all image urls from metadata table and started a multithread download
+* Download files can fail -- should keep track which is failed
+* Some images deleted and instead we only have an "Image is deleted" sticker as 2k image. (tring to find a way to detect those)
