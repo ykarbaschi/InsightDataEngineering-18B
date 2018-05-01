@@ -1,19 +1,19 @@
 import quilt
-from oi.data.examples import openimages as oi
+from quilt.data.examples import openimages as oi
 import pandas as pd
 import os
 import shutil
-
+import numpy as np
+import pathlib
 ############################################
 
 def ProcessQuery(classDescriptionDF, annotationDF, query):
 	#query is a regex
 
 	# second column should be descriptions 'label'
-	classDescriptionDF.columns = ['labelID', 'labelDescription']
-	classDescriptionDF['descLower'] = classDescriptionDF.labelDescription.str.lower()
-	rowsResult = classDescriptionDF[classDescriptionDF.descLower.str.contain(query, regex=True)]
-	rowsResult.rename(columns={'labelID':'LabelName'})
+	classDescriptionDF.columns = ['LabelName', 'LabelDescription']
+	classDescriptionDF['descLower'] = classDescriptionDF.LabelDescription.str.lower()
+	rowsResult = classDescriptionDF[classDescriptionDF.descLower.str.contains(query, regex=True)]
 
 	return (pd.merge(rowsResult, annotationDF)).ImageID.tolist()
 
@@ -22,13 +22,13 @@ def CopyImages(IDs, source, dest):
 		full_file_name = ''
 		for src in source:
 			#find the location of file
-			if (os.path.isfile(os.path.join(source, id))):
-				full_file_name = os.path.join(source, id)
+			if (os.path.isfile(os.path.join(src, id))):
+				full_file_name = os.path.join(src, id)
 				break
 
 		if full_file_name == '':
 			with open('logPath','+') as myFile:
-					myFile.write('this file couldnt be found {}\n'.format(id))
+				myFile.write('this file couldnt be found {}\n'.format(id))
 			continue
 
 		try:
@@ -40,7 +40,7 @@ def CopyImages(IDs, source, dest):
 
 # lets say for train
 dataSource = ['/data16TB/train/images/', '/data3TB/train/images/']
-annotationDF = oi.train.annotation_human();
+annotationDF = oi.train.annotations_human();
 classDescriptionDF = oi.class_descriptions()
 tempDest = '/data3TB/quiltPackage/train/'
 logPath = 'data3TB/quiltPackage/copy.out'
