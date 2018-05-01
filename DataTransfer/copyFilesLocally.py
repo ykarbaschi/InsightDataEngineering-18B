@@ -8,34 +8,34 @@ import pathlib
 ############################################
 
 def ProcessQuery(classDescriptionDF, annotationDF, query):
-	#query is a regex
+    #query is a regex
 
 	# second column should be descriptions 'label'
-	classDescriptionDF.columns = ['LabelName', 'LabelDescription']
-	classDescriptionDF['descLower'] = classDescriptionDF.LabelDescription.str.lower()
-	rowsResult = classDescriptionDF[classDescriptionDF.descLower.str.contains(query, regex=True)]
+    classDescriptionDF.columns = ['LabelName', 'LabelDescription']
+    classDescriptionDF['descLower'] = classDescriptionDF.LabelDescription.str.lower()
+    rowsResult = classDescriptionDF[classDescriptionDF.descLower.str.contains(query, regex=True)]
 
-	return (pd.merge(rowsResult, annotationDF)).ImageID.tolist()
+    return (pd.merge(rowsResult, annotationDF)).ImageID.tolist()
 
 def CopyImages(IDs, source, dest):
-	for id in IDs:
-		full_file_name = None
-		for src in source:
-			#find the location of file
-			if (os.path.isfile(os.path.join(src, id))):
-				full_file_name = os.path.join(src, id)
-				break
+    for id in IDs:
+	full_file_name = None
+	for src in source:
+	    #find the location of file
+	    if (os.path.isfile(os.path.join(src, id))):
+		full_file_name = os.path.join(src, id)
+		break
 
-		if full_file_name:
-			with open('logPath','+') as myFile:
-				myFile.write('this file couldnt be found {}\n'.format(id))
-			continue
+	if full_file_name:
+	    with open('logPath','+') as myFile:
+		myFile.write('this file couldnt be found {}\n'.format(id))
+	    continue
 
-		try:
-			shutil.copy(full_file_name, dest)
-		except Exception as e:
-			with open('logPath','+') as myFile:
-					myFile.write('this file can not be written be found {}\n'.format(id))
+	try:
+	    shutil.copy(full_file_name, dest)
+	except Exception as e:
+	    with open('logPath','+') as myFile:
+		myFile.write('this file can not be written be found {}\n'.format(id))
 #########################
 
 # lets say for train
