@@ -19,14 +19,14 @@ def ProcessQuery(classDescriptionDF, annotationDF, query):
 
 def CopyImages(IDs, source, dest):
 	for id in IDs:
-		full_file_name = ''
+		full_file_name = None
 		for src in source:
 			#find the location of file
 			if (os.path.isfile(os.path.join(src, id))):
 				full_file_name = os.path.join(src, id)
 				break
 
-		if full_file_name == '':
+		if full_file_name:
 			with open('logPath','+') as myFile:
 				myFile.write('this file couldnt be found {}\n'.format(id))
 			continue
