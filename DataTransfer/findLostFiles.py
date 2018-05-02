@@ -23,4 +23,5 @@ lostFiles = np.setdiff1d(allImageIDs, fileNames)
 np.append(lostFiles, zeroSizeFilesNames)
 
 np.save(PATH+'/lost.npy', lostFiles)
+
 #np.savetxt(PATH+'/lost.log', lostFiles, delimiter=' ', fmt="%s")
