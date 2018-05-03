@@ -39,6 +39,7 @@ if __name__ == '__main__':
     minDiskSpace = 1000000 #kb means ~1GB
     
     #pathlib.Path(base).mkdir(parents=True, exist_ok=True)
+    
     DF = oi.train.images._data()
 
     parallelize(DF, download)
