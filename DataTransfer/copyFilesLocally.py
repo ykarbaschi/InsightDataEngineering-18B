@@ -42,9 +42,9 @@ def CopyImages(IDs, source, dest):
 dataSource = ['/data16TB/train/images/', '/data3TB/train/images/']
 annotationDF = oi.train.annotations_human();
 classDescriptionDF = oi.class_descriptions()
-tempDest = '/data3TB/quiltPackage/train/'
+tempDest = '/data3TB/quiltPackage/policeCar/'
 logPath = 'data3TB/quiltPackage/copy.out'
-query = 'dog'
+query = 'police car'
 #final dest is Quilt servers
 
 pathlib.Path(tempDest).mkdir(parents=True, exist_ok=True)

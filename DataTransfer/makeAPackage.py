@@ -63,7 +63,8 @@ quilt.build("ykarbaschi/police_car", packageSRC+'build.yml')
 
 from quilt.data.ykarbaschi import police_car
 
-police_car._set(['metadata'], metadata)
+#police_car._set(['metadata'], metadata)
+police_car._meta['imageMetadata'] = metadata
 
 #all_bbox = oi.train.annotations_human_bbox();
 
