@@ -58,25 +58,40 @@ def GetNumImages(folds, allImageIDs):
 
 	return sum
 
-def GenerateImageMetadata(folds, allImageIDs, Helmet, annList):
+def GenerateImageMetadata(folds, allImageIDs, pkgName, annList):
 	for fold in folds:
+		# all image ids for this fold
 		imageIDList = allImageIDs[fold]
+		# all image information for this fold
+		imageMetadata = operator.attrgetter("{}.{}".format(fold, 'images'))(oi)()
 		for ann in annList:
 			metadata = operator.attrgetter("{}.{}".format(fold, ann))(oi)()
 			for imageID in imageIDList:
-				imageDataNode = getattr(getattr(Helmet, 'images'), 'n'+imageID)	
-				metadataDF = metadata.loc[metadata.ImageID.str.match(imageID)]
-				if metadataDF.shape[0] > 0:
-					imageDataNode._meta['custom'][ann] = metadataDF
+				imageDataNode = getattr(getattr(pkgName, 'images'), 'n'+imageID)
+				# metadataDF = metadata.loc[metadata.ImageID.str.match(imageID)]
+
+				# if metadataDF.shape[0] > 0:
+				# 	imageDataNode._meta['custom'][ann] = metadataDF
+
+				# add all image info as metadata
+				imageDataRow = imageMetadata.loc[imageMetadata.ImageID.str.match(imageID)]
+				
+				if imageDataRow.shape[0] != 1:
+					print('there should be one record for this image {}/{}'.format(fold, imageID))
+					continue
+					
+				for column in imageDataRow.columns:
+					imageDataNode._meta['custom'][column] = str(imageDataRow[column].values[0])
+
 
 t = time.time()
 
 
-classID = '/m/0zvk5'
-classDescription = 'Helmet'
+classID = '/m/02x8cch'
+classDescription = 'salt_and_pepper_shake'
 
 #folds = ['test', 'train', 'validation']
-folds = ['test']
+folds = ['test', 'validation']
 annList = ['annotations_human', 'annotations_machine', 'annotations_human_bbox']
 packagePath = '/data3TB/quiltPackage/'+ classDescription + '/'
 
