@@ -3,6 +3,7 @@ import os
 import pathlib
 import re
 import shutil
+import time
 import pandas as pd
 import quilt
 from quilt.data.examples import openimages as oi
@@ -57,26 +58,19 @@ def GetNumImages(folds, allImageIDs):
 
 	return sum
 
-def GetImageMetadata(fold, ann, imageID):
-	metadata = operator.attrgetter("{}.{}".format(fold, ann))(oi)()
-	return metadata.loc[metadata.ImageID.str.match(imageID)]
-
 def GenerateImageMetadata(folds, allImageIDs, Helmet, annList):
 	for fold in folds:
 		imageIDList = allImageIDs[fold]
-		for imageID in imageIDList:
-			try:
-				imageDataNode = getattr(getattr(Helmet, 'images'), imageID)
-			except Exception as e:
-				print(e)
-			
-			for ann in annList:
-				try:
-					metadataDF = GetImageMetadata(fold, ann, imageID)
-					if metadataDF.shape[0] > 0:
-						imageDataNode._meta[ann] = metadataDF
-				except Exception as e:
-					print(e)
+		for ann in annList:
+			metadata = operator.attrgetter("{}.{}".format(fold, ann))(oi)()
+			for imageID in imageIDList:
+				imageDataNode = getattr(getattr(Helmet, 'images'), 'n'+imageID)	
+				metadataDF = metadata.loc[metadata.ImageID.str.match(imageID)]
+				if metadataDF.shape[0] > 0:
+					imageDataNode._meta['custom'][ann] = metadataDF
+
+t = time.time()
+
 
 classID = '/m/0zvk5'
 classDescription = 'Helmet'
@@ -104,17 +98,18 @@ if (os.path.exists(packagePath+'build.yml')):
 quilt.generate(packagePath)
 quilt.build('ykarbaschi/' + classDescription, packagePath + 'build.yml')
 
-# I dont know how to dynamically change the package name here, 
-# I hard coded police_car for now
-from quilt.data.ykarbaschi import Helmet
+pkgNode = quilt.load('ykarbaschi/'+classDescription)
 
-Helmet._meta['trainable'] = classID in oi.classes_trainable().values
-Helmet._meta['bbox'] = classID in oi.classes_bbox().values
-Helmet._meta['labelName'] = classDescription
-Helmet._meta['image_count'] = GetNumImages(folds, allImageIDs)
+pkgNode._meta['custom']['trainable'] = classID in oi.classes_trainable().values
+pkgNode._meta['custom']['bbox'] = classID in oi.classes_bbox().values
+pkgNode._meta['custom']['labelName'] = classDescription
+pkgNode._meta['custom']['image_count'] = GetNumImages(folds, allImageIDs)
 
-# Helmet should be corrected
-GenerateImageMetadata(folds, allImageIDs, Helmet, annList)
+GenerateImageMetadata(folds, allImageIDs, pkgNode, annList)
+print('Metadata generation completed')
 
-quilt.build('ykarbaschi/'+ classDescription, Helmet)
+quilt.build('ykarbaschi/'+ classDescription, pkgNode)
 quilt.push('ykarbaschi/'+ classDescription, is_public=True)
+
+elapsed = time.time() - t
+print(elapsed)
