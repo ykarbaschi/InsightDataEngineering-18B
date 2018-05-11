@@ -67,6 +67,14 @@ def GetNumImages(folds, allImageIDs):
 
 	return sum
 
+def GetPkgSize(pkgPath):
+	sizes = str(subprocess.check_output(['find', pkgPath, '-type', 'f', '-printf', '%s ']))
+	sizes = sizes.split()
+	del sizes[-1]
+	sizes[0] = sizes[0].split('\'')[1]
+	sizes = list(map(int, sizes))
+	return sum(sizes)
+
 def GenerateImageMetadata(folds, allImageIDs, pkgName, annList, logPath, imagePrefix):
 	for fold in folds:
 		# all image ids for this fold
@@ -175,8 +183,8 @@ statsPath = sys.argv[5]
 # invalidImagePath = it should be a dict with test/train/validation key and a list values
 invalidImagePath = sys.argv[6]
 
-#folds = ['test','validation','train']
-folds = ['test', 'validation']
+folds = ['test','validation','train']
+#folds = ['test', 'validation']
 annList = ['annotations_human', 'annotations_machine', 'annotations_human_bbox']
 packagePath = savePath + classDescription + '/'
 
@@ -223,5 +231,7 @@ t = time.time()
 quilt.push(quiltUser+ '/' + classDescription, is_public=True)
 pushTime = time.time()-t
 
+pkgSize = GetPkgSize(packagePath)
+
 with open(statsPath, 'a+') as myFile:
-	myFile.write('{} {} {} {} {}\n'.format(classID, numImages, copyTime, buildPkgTime, pushTime))
+	myFile.write('{} {} {} {} {} {}\n'.format(classDescription, numImages, pkgSize, copyTime, buildPkgTime, pushTime))
