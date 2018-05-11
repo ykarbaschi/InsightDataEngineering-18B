@@ -20,14 +20,14 @@ def GetImageIDs(folds, query):
     
     return allImageIDs
 
-def GeneratePandasTable(folds, allImageIDs, imageDest):
+def GeneratePandasTable(folds, allImageIDs, packagePath):
     pandaTables = ['annotations_human', 'annotations_human_bbox', 'annotations_machine','images']
     for fold in folds:
         for ann in pandaTables:
             metadata = operator.attrgetter("{}.{}".format(fold, ann))(oi)()
             foldImageIDs = allImageIDs[fold]
             foldMetadata = pd.merge(metadata, pd.DataFrame(data={'ImageID':foldImageIDs}))
-            metadataPath = imageDest + fold + '/' + ann + '.csv'
+            metadataPath = packagePath + fold + '/' + ann + '.csv'
             try:
                 foldMetadata.to_csv(metadataPath)
             except Exception as e:
@@ -61,17 +61,29 @@ def MakeFolders(dest, folds):
         path = dest + fold + '/images'
         pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
+def GenerateREADME(readmePath):
+    with open(readmePath,'w') as myFile:
+        myFile.write('# Package Summary')
+
 folds = ['test', 'train', 'validation']
 packageName = 'police_car'
-imageDest = '/data3TB/quiltPackage/'+ packageName + '/'
+packagePath = '/data3TB/quiltPackage/'+ packageName + '/'
 
-MakeFolders(imageDest, folds)
+MakeFolders(packagePath, folds)
 
 query = 'police car' 
 allImageIDs = GetImageIDs(folds, query)
 # I assumed all train data is in 16TB for now
 dataSource = '/data16TB/'
-logPath = imageDest + 'PackageBuilding.out'
-CopyImages(folds, allImageIDs, dataSource, imageDest, logPath)
+logPath = packagePath + 'PackageBuilding.out'
+CopyImages(folds, allImageIDs, dataSource, packagePath, logPath)
 
-GeneratePandasTable(folds, allImageIDs, imageDest)
+GeneratePandasTable(folds, allImageIDs, packagePath)
+
+GenerateREADME(packagePath+'README.md')
+
+if (os.path.exists(packagePath+'build.yml')):
+    os.remove(packagePath+'build.yml')
+
+quilt.generate(packagePath)
+quilt.build('ykarbaschi/' + pacakgeName, packagePath + 'build.yml')
