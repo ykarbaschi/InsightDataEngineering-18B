@@ -1,4 +1,4 @@
-from multiprocessing import Parallel
+from multiprocessing import Pool
 from urllib.request import urlretrieve
 import os
 import pathlib
