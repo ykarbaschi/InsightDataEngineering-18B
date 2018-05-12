@@ -12,6 +12,9 @@ import quilt
 from quilt.data.examples import openimages as oi
 
 def CopyImages(folds, allImageIDs, sourceFolder, destFolder, logPath, imagePrefix):
+	# This is only becasue train images could fit in one volumes
+	trainSecSource = '/data3TB/train/images/'
+
 	for fold in folds:
 		IDs = allImageIDs[fold]
 		source = sourceFolder + fold + '/images/'
@@ -21,7 +24,10 @@ def CopyImages(folds, allImageIDs, sourceFolder, destFolder, logPath, imagePrefi
 		for id in IDs:
 			newFileName = dest + imagePrefix + id
 			full_file_name = None
-			if (os.path.isfile(source+id)):
+			if fold == 'train' and \
+			(os.path.isfile(source+id) or os.path.isfile(trainSecSource+id)):
+				full_file_name = source+id
+			elif (os.path.isfile(source+id)):
 				full_file_name = source+id
 
 			if not full_file_name:
@@ -103,10 +109,10 @@ def GenerateImageMetadata(folds, allImageIDs, pkgName, annList, logPath, imagePr
 
 				# add bbox to metadata
 				if ann == 'annotations_human_bbox':
-					imageDataNode._meta['custom']['bbox'] = imageID in metadataAnnAllImagesThisFold.ImageID.values
+					imageDataNode._meta['bbox'] = imageID in metadataAnnAllImagesThisFold.ImageID.values
 
 				if metadataDF.shape[0] > 0:
-					imageDataNode._meta['custom'][ann] = metadataDF.drop(columns=['ImageID']).to_json(orient='records')
+					imageDataNode._meta[ann] = metadataDF.drop(columns=['ImageID']).to_json(orient='records')
 
 				imageDataRow = imageMetadataAllImagesFold.loc[imageMetadataAllImagesFold.ImageID.str.match(imageID)]
 				#imageDataRow = imageMetadataAllImagesFold.query('ImageID == @imageID')
@@ -117,7 +123,7 @@ def GenerateImageMetadata(folds, allImageIDs, pkgName, annList, logPath, imagePr
 					continue
 
 				for column in imageDataRow.columns:
-					imageDataNode._meta['custom'][column] = str(imageDataRow[column].values[0])
+					imageDataNode._meta[column] = str(imageDataRow[column].values[0])
 
 				# #for monitoring
 				# imageCounter = imageCounter + 1
@@ -176,7 +182,7 @@ classDescription = GetClassDescription(classID)
 dataSource = sys.argv[2]
 # savePath = '/data3TB/quiltPackage/'
 savePath = sys.argv[3]
-#folds = ['test', 'train', 'validation']
+
 quiltUser = sys.argv[4]
 # statsPath = '/data3TB/quiltPackage/stats.log'
 statsPath = sys.argv[5]
@@ -214,10 +220,10 @@ quilt.build(quiltUser + '/' + classDescription, packagePath + 'build.yml')
 
 pkgNode = quilt.load(quiltUser + '/' +classDescription)
 
-pkgNode._meta['custom']['trainable'] = classID in oi.classes_trainable().values
-pkgNode._meta['custom']['labelName'] = classDescription
+pkgNode._meta['trainable'] = classID in oi.classes_trainable().values
+pkgNode._meta['labelName'] = classDescription
 numImages = GetNumImages(folds, allImageIDs)
-pkgNode._meta['custom']['image_count'] = numImages
+pkgNode._meta['image_count'] = numImages
 
 GenerateImageMetadata(folds, allImageIDs, pkgNode, annList, logPath, imagePrefix)
 print('######## Image Metadata Generated#########')
@@ -235,3 +241,7 @@ pkgSize = GetPkgSize(packagePath)
 
 with open(statsPath, 'a+') as myFile:
 	myFile.write('{} {} {} {} {} {}\n'.format(classDescription, numImages, pkgSize, copyTime, buildPkgTime, pushTime))
+
+#cleaning
+quilt.rm(quiltUser+ '/' + classDescription, force=True)
+shutil.rmtree(packagePath)
