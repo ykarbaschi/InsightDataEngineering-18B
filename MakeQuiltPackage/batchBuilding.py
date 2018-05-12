@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import quilt
 from quilt.data.examples import openimages as oi
@@ -16,13 +17,14 @@ invalidImageIDsPath = '/home/ubuntu/invalidImageIDs.pickle'
 for classID in sampleClasses['0'].values:
 
 	row = classes.loc[classes['0'].str.match(classID)]
-	className = str(row['1'].values[0]).lower().replace(' ', '_').replace('\'', '').replace('-','_')
+	className = str(row['1'].values[0]).lower().replace('\'', '')
+	className = re.sub(r'[\s\-/]','_', className)
 
-	# os.system('nohup python {} {} {} {} {} {} {} > {}{}_nohup.out &'.\
-	# 	format(scriptName, classID, sourcePath, pkgPath, userID, logFile, invalidImageIDsPath, pkgPath, className))
+	os.system('python {} {} {} {} {} {} {} > {}{}_log.out'.format(\
+		scriptName, classID, sourcePath, pkgPath, userID, logFile, invalidImageIDsPath, pkgPath, className))
 
-	os.system('python {} {} {} {} {} {} {}'.format(\
-		scriptName, classID, sourcePath, pkgPath, userID, logFile, invalidImageIDsPath))
+	# os.system('python {} {} {} {} {} {} {}'.format(\
+	# 	scriptName, classID, sourcePath, pkgPath, userID, logFile, invalidImageIDsPath))
 
 
 	print('done class {}'.format(className))
