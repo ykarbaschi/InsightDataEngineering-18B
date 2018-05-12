@@ -166,13 +166,11 @@ def GetInvalidImageIDs(path,size):
 
 	return smallImageIDs
 	# we filter images based on size
-''' we need to provide 5 things, LabelID,
+''' we need to provide 6 things, LabelID,
  data source folder, package save path,
- and quilt user Id, and stats.log path
+ and quilt user Id, stats.log path an 
+ invalidImageIDPath according to their size
 '''
-# images less than this will be ignored
-sizeThreshold = 4 # in KB
-
 # for consistency file names and datanodes. avoid build to add 'n'
 imagePrefix = 'i'
 #classID = '/m/02x8cch'
@@ -198,17 +196,17 @@ pathlib.Path(packagePath).mkdir(parents=True, exist_ok=True)
 
 invalidIDsDict = pickle.load(open(invalidImagePath, 'rb'))
 allImageIDs = GetImageIDs(folds, classID, annList, dataSource, invalidIDsDict)
-# I assumed all train data is in 16TB for now
+
 logPath = savePath + 'pkgBuilding_' + classDescription + '.out'
 
 t = time.time()
 CopyImages(folds, allImageIDs, dataSource, packagePath, logPath, imagePrefix)
 copyTime = time.time() - t
 
-print('########Copy Completed#########')
+print('########Copy Completed #########')
 
 FilterAndSavePandasTable(folds, allImageIDs, annList, packagePath, logPath)
-print('######## Panda Table Generated#########')
+print('######## Panda Table Generated #########')
 
 GenerateREADME(packagePath+'README.md', classDescription)
 if (os.path.exists(packagePath+'build.yml')):
@@ -226,10 +224,10 @@ numImages = GetNumImages(folds, allImageIDs)
 pkgNode._meta['image_count'] = numImages
 
 GenerateImageMetadata(folds, allImageIDs, pkgNode, annList, logPath, imagePrefix)
-print('######## Image Metadata Generated#########')
+print('######## Image Metadata Generated #########')
 
 quilt.build(quiltUser + '/' + classDescription, pkgNode)
-print('######## New Package Generated#########')
+print('######## New Package Generated #########')
 
 buildPkgTime = time.time()-t
 
